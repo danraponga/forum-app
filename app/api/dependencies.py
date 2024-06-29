@@ -14,8 +14,10 @@ from app.core.security import (
     decode_token,
 )
 from app.models.user import User
+from app.repositories.post_gateway import PostDbGateway
 from app.repositories.user_gateway import UserDbGateway
 from app.schemas.auth import RefreshToken
+from app.services.post_service import PostService
 
 bearer = HTTPBearer(auto_error=False)
 
@@ -30,6 +32,14 @@ def get_db() -> Generator:
 
 def get_user_gateway(db: Session = Depends(get_db)) -> UserDbGateway:
     return UserDbGateway(db)
+
+
+def get_post_gateway(db: Session = Depends(get_db)) -> PostDbGateway:
+    return PostDbGateway(db)
+
+
+def get_post_service(gateway: PostDbGateway = Depends(get_post_gateway)) -> PostService:
+    return PostService(gateway)
 
 
 def get_user_by_token(token: str, target_type: str, gateway: UserDbGateway) -> User:
