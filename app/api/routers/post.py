@@ -5,6 +5,7 @@ from app.api.dependencies import (
     get_post_gateway,
     get_post_service,
 )
+from app.api.routers.comment import comment_router
 from app.core.exceptions import (
     AccessDenied,
     EntityNotFoundError,
@@ -25,6 +26,7 @@ from app.schemas.post import (
 from app.services.post_service import PostService
 
 post_router = APIRouter()
+post_router.include_router(comment_router, prefix="/comments", tags=["Comments"])
 
 
 @post_router.post("/create")
