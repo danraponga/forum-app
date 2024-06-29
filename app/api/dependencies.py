@@ -14,9 +14,11 @@ from app.core.security import (
     decode_token,
 )
 from app.models.user import User
+from app.repositories.comment_gateway import CommentDbGateway
 from app.repositories.post_gateway import PostDbGateway
 from app.repositories.user_gateway import UserDbGateway
 from app.schemas.auth import RefreshToken
+from app.services.comment_service import CommentService
 from app.services.post_service import PostService
 
 bearer = HTTPBearer(auto_error=False)
@@ -40,6 +42,17 @@ def get_post_gateway(db: Session = Depends(get_db)) -> PostDbGateway:
 
 def get_post_service(gateway: PostDbGateway = Depends(get_post_gateway)) -> PostService:
     return PostService(gateway)
+
+
+def get_comment_gateway(db: Session = Depends(get_db)) -> CommentDbGateway:
+    return CommentDbGateway(db)
+
+
+def get_comment_service(
+    comment_gateway: CommentDbGateway = Depends(get_comment_gateway),
+    post_gateway: PostDbGateway = Depends(get_post_gateway),
+) -> CommentService:
+    return CommentService(comment_gateway, post_gateway)
 
 
 def get_user_by_token(token: str, target_type: str, gateway: UserDbGateway) -> User:
