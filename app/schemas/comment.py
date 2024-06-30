@@ -20,7 +20,7 @@ class CommentDTO(BaseModel):
 
 
 class UserCommentData(BaseModel):
-    content: str
+    content: str = Field(examples=["Your content here"])
 
 
 class CreateCommentRequest(UserCommentData):

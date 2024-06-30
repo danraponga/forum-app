@@ -22,7 +22,7 @@ class PostId(BaseModel):
 class CreatePostRequest(BaseModel):
     content: str
     ai_enabled: bool = False
-    ai_delay_minutes: int = 5
+    ai_delay_minutes: int | None = None
 
 
 class CreatePostDTO(CreatePostRequest):
@@ -34,11 +34,14 @@ class PostsListResultDTO(BaseModel):
     total: int
 
 
-class UpdatePostDTO(CreatePostRequest):
+class UpdatePostBase(BaseModel):
     post_id: int
     user_id: int
 
 
-class DeletePostDTO(BaseModel):
-    post_id: int
-    user_id: int
+class UpdatePostDTO(UpdatePostBase, CreatePostRequest):
+    pass
+
+
+class DeletePostDTO(UpdatePostBase):
+    pass

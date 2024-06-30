@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 from app.schemas.user import UserDTO
 
@@ -14,9 +14,9 @@ class TokenInfo(BaseModel):
 
 
 class SignUpDTO(BaseModel):
-    username: str
+    username: str = Field(min_length=4, max_length=16)
     email: EmailStr
-    password: str
+    password: str = Field(min_length=4)
 
 
 class SignUpResultDTO(BaseModel):
