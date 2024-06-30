@@ -7,11 +7,13 @@ from app.repositories.post_gateway import PostDbGateway
 from app.schemas.comment import (
     CommentDTO,
     CommentsListResultDTO,
+    CreateAICommentDTO,
     CreateCommentDTO,
     DeleteCommentDTO,
     ReadCommentsListDTO,
     UpdateCommentDTO,
 )
+from app.services.celery_task import create_comment_by_ai
 from app.services.common.base_service import BaseService
 
 
@@ -38,8 +40,16 @@ class CommentService(BaseService):
         )
         if contains_profanity(dto.content):
             comment.status = Status.BANNED
-
         self.comment_gateway.create(comment)
+
+        if post.ai_enabled and post.owner_id != comment.owner_id:
+            dto = CreateAICommentDTO(
+                post_id=post.id,
+                parent_id=comment.id,
+            )
+            create_comment_by_ai.apply_async(
+                [dto.model_dump()], countdown=post.ai_delay_minutes * 60
+            )
         return CommentDTO.model_validate(comment, from_attributes=True)
 
     def get_post_comments(self, dto: ReadCommentsListDTO) -> CommentsListResultDTO:

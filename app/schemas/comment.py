@@ -31,6 +31,11 @@ class CreateCommentDTO(PostId, CreateCommentRequest):
     user_id: int
 
 
+class CreateAICommentDTO(BaseModel):
+    post_id: int
+    parent_id: int
+
+
 class ReadCommentRequest(PostId):
     comment_id: int
 
