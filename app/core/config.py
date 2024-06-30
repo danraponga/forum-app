@@ -7,6 +7,7 @@ load_dotenv()
 
 class Config:
     DB_URI = os.getenv("DB_URI")
+    REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 
     SECRET_KEY = os.getenv("SECRET_KEY")
     HASH_ALGORITHM = "HS256"
@@ -16,6 +17,17 @@ class Config:
 
     SERVER_HOST = os.getenv("SERVER_HOST")
     SERVER_PORT = int(os.getenv("SERVER_PORT"))
+
+    AI_API_KEY = os.getenv(
+        "AI_API_KEY",
+        "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",
+    )
+    AI_MODEL = "llama3-8b-8192"  # Another models - https://console.groq.com/docs/models
+    AI_PROMPT = (
+        "Imagine you're author of the post {post}. Some user left a comment on your post: {comment}."
+        "You need to response to a comment briefly, taking into account the context of"
+        "the post and comment. Be concise and try to match the author of the post."
+    )
 
 
 settings = Config()
