@@ -1,6 +1,10 @@
+from datetime import datetime
+
+from sqlalchemy import case, func
 from sqlalchemy.orm import Query, Session
 
 from app.models.comment import Comment
+from app.models.common.status import Status
 
 
 class CommentDbGateway:
@@ -45,3 +49,23 @@ class CommentDbGateway:
 
     def get_total(self, query: Query):
         return query.count()
+
+    def get_statistics_by_date(
+        self, date_from: datetime, date_to: datetime, post_id: int
+    ):
+        return (
+            self.db.query(
+                func.date(Comment.created_at).label("date"),
+                func.count(Comment.id).label("total_comments"),
+                func.sum(case((Comment.status == Status.BANNED, 1), else_=0)).label(
+                    "banned_comments"
+                ),
+            )
+            .filter(
+                Comment.post_id == post_id,
+                Comment.created_at >= date_from,
+                Comment.created_at <= date_to,
+            )
+            .group_by(func.date(Comment.created_at))
+            .all()
+        )

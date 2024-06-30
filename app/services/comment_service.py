@@ -1,3 +1,5 @@
+from typing import List
+
 from app.core.exceptions import EntityNotFoundError, ProfanityContentError
 from app.core.utils import contains_profanity
 from app.models.comment import Comment
@@ -7,10 +9,12 @@ from app.repositories.post_gateway import PostDbGateway
 from app.schemas.comment import (
     CommentDTO,
     CommentsListResultDTO,
+    CommentsStatResultDTO,
     CreateAICommentDTO,
     CreateCommentDTO,
     DeleteCommentDTO,
     ReadCommentsListDTO,
+    ReadCommentsStatDTO,
     UpdateCommentDTO,
 )
 from app.services.celery_task import create_comment_by_ai
@@ -91,3 +95,19 @@ class CommentService(BaseService):
 
         self.comment_gateway.delete(comment)
         return CommentDTO.model_validate(comment, from_attributes=True)
+
+    def get_comment_statisctics(
+        self, dto: ReadCommentsStatDTO
+    ) -> List[CommentsStatResultDTO]:
+        post = self.post_gateway.get_by_id(dto.post_id)
+        if not post:
+            raise EntityNotFoundError()
+        self.ensure_can_edit(post.owner_id, dto.user_id)
+
+        statistics = self.comment_gateway.get_statistics_by_date(
+            date_from=dto.date_from, date_to=dto.date_to, post_id=dto.post_id
+        )
+        return [
+            CommentsStatResultDTO.model_validate(row, from_attributes=True)
+            for row in statistics
+        ]
