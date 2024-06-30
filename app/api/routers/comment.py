@@ -28,7 +28,7 @@ from app.services.comment_service import CommentService
 comment_router = APIRouter()
 
 
-@comment_router.post("/create")
+@comment_router.post("/{post_id}/comments/")
 def create_comment(
     body: CreateCommentRequest,
     post_id: PostId = Depends(),
@@ -44,7 +44,7 @@ def create_comment(
         raise HTTPException(status_code=404, detail=e)
 
 
-@comment_router.get("/")
+@comment_router.get("/{post_id}/comments/")
 def read_all_comments(
     post_id: PostId = Depends(),
     pagination: Pagination = Depends(),
@@ -57,7 +57,7 @@ def read_all_comments(
         raise HTTPException(status_code=404, detail="Post not found")
 
 
-@comment_router.get("/{comment_id}")
+@comment_router.get("/{post_id}/comments/{comment_id}/")
 def read_comment(
     query: ReadCommentRequest = Depends(),
     post_gateway: PostDbGateway = Depends(get_post_gateway),
@@ -71,7 +71,7 @@ def read_comment(
     return CommentDTO.model_validate(comment, from_attributes=True)
 
 
-@comment_router.patch("/{comment_id}")
+@comment_router.patch("/{post_id}/comments/{comment_id}/")
 def update_comment(
     body: UserCommentData,
     query: ReadCommentRequest = Depends(),
@@ -89,7 +89,7 @@ def update_comment(
         raise HTTPException(status_code=400, detail="Profanity content")
 
 
-@comment_router.delete("/{comment_id}")
+@comment_router.delete("/{post_id}/comments/{comment_id}/")
 def delete_comment(
     query: ReadCommentRequest = Depends(),
     current_user: User = Depends(get_current_auth_user),

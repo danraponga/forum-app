@@ -26,10 +26,10 @@ from app.schemas.post import (
 from app.services.post_service import PostService
 
 post_router = APIRouter()
-post_router.include_router(comment_router, prefix="/comments", tags=["Comments"])
+post_router.include_router(comment_router, tags=["Comments"])
 
 
-@post_router.post("/create")
+@post_router.post("/create/")
 def create_post(
     user_data: CreatePostRequest,
     current_user: User = Depends(get_current_auth_user),
@@ -53,7 +53,7 @@ def read_posts_all(
     return PostsListResultDTO(posts=posts_response, total=total)
 
 
-@post_router.get("/{post_id}")
+@post_router.get("/{post_id}/")
 def read_post(
     post_id: PostId = Depends(),
     post_gateway: PostDbGateway = Depends(get_post_gateway),
@@ -64,7 +64,7 @@ def read_post(
     return PostDTO.model_validate(post, from_attributes=True)
 
 
-@post_router.patch("/{post_id}")
+@post_router.patch("/{post_id}/")
 def update_post(
     user_data: CreatePostRequest,
     post_id: PostId = Depends(),
@@ -84,7 +84,7 @@ def update_post(
         raise HTTPException(status_code=400, detail="Post contains profanity")
 
 
-@post_router.delete("/{post_id}")
+@post_router.delete("/{post_id}/")
 def delete_post(
     post_id: PostId = Depends(),
     current_user: User = Depends(get_current_auth_user),

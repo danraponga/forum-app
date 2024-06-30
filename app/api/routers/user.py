@@ -22,7 +22,7 @@ def read_users_all(
     return UsersListResultDTO(users=users_response, total=total)
 
 
-@user_router.get("/{user_id}")
+@user_router.get("/{user_id}/")
 def read_user(
     user_id: int, user_gateway: UserDbGateway = Depends(get_user_gateway)
 ) -> UserDTO:

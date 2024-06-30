@@ -18,7 +18,7 @@ from app.schemas.user import UserDTO
 auth_router = APIRouter()
 
 
-@auth_router.post("/sign_up", response_model=UserDTO)
+@auth_router.post("/sign_up/", response_model=UserDTO)
 def sign_up(
     user_data: SignUpDTO,
     user_gateway: UserDbGateway = Depends(get_user_gateway),
@@ -38,7 +38,7 @@ def sign_up(
     )
 
 
-@auth_router.post("/login")
+@auth_router.post("/login/")
 def sign_in(
     credentials: SignInDTO,
     user_gateway: UserDbGateway = Depends(get_user_gateway),
@@ -52,12 +52,12 @@ def sign_in(
     )
 
 
-@auth_router.get("/me", response_model=UserDTO)
+@auth_router.get("/me/", response_model=UserDTO)
 def me(user: User = Depends(get_current_auth_user)) -> User:
     return user
 
 
-@auth_router.post("/refresh", response_model_exclude_none=True)
+@auth_router.post("/refresh/", response_model_exclude_none=True)
 def refresh_access_token(
     user: User = Depends(get_current_auth_user_refresh),
 ) -> TokenInfo:
