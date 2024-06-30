@@ -13,11 +13,14 @@ from app.repositories.post_gateway import PostDbGateway
 from app.schemas.comment import (
     CommentDTO,
     CommentsListResultDTO,
+    CommentsStatResultDTO,
     CreateCommentDTO,
     CreateCommentRequest,
     DeleteCommentDTO,
     ReadCommentRequest,
     ReadCommentsListDTO,
+    ReadCommentsStatDTO,
+    ReadCommentsStatRequest,
     UpdateCommentDTO,
     UserCommentData,
 )
@@ -100,3 +103,16 @@ def delete_comment(
         return comment_service.delete_comment(dto)
     except EntityNotFoundError as e:
         raise HTTPException(status_code=404, detail=e)
+
+
+@comment_router.get("/{post_id}/comments-daily-breakdown")
+def get_comments_statistics(
+    query: ReadCommentsStatRequest = Depends(),
+    current_user: User = Depends(get_current_auth_user),
+    comment_service: CommentService = Depends(get_comment_service),
+) -> list[CommentsStatResultDTO]:
+    dto = ReadCommentsStatDTO(user_id=current_user.id, **query.model_dump())
+    try:
+        return comment_service.get_comment_statisctics(dto)
+    except EntityNotFoundError:
+        raise HTTPException(status_code=404, detail="Post not found")

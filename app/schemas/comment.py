@@ -1,7 +1,7 @@
-from datetime import datetime
-from typing import List
+from datetime import date, datetime
+from typing import Any, List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.models.common.status import Status
 from app.schemas.pagination import Pagination
@@ -55,3 +55,25 @@ class UpdateCommentDTO(ReadCommentRequest, UserCommentData):
 
 class DeleteCommentDTO(ReadCommentRequest):
     user_id: int
+
+
+class ReadCommentsStatRequest(PostId):
+    date_from: date
+    date_to: date
+
+    @model_validator(mode="before")
+    @classmethod
+    def check_card_number_omitted(cls, data: Any) -> Any:
+        if data["date_from"] > data["date_to"]:
+            raise ValueError("date_to must be greater than or equal to date_from")
+        return data
+
+
+class ReadCommentsStatDTO(ReadCommentsStatRequest):
+    user_id: int
+
+
+class CommentsStatResultDTO(BaseModel):
+    date: date
+    total_comments: int
+    banned_comments: int
