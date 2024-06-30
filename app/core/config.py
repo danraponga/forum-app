@@ -15,8 +15,8 @@ class Config:
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
     REFRESH_TOKEN_EXPIRE_DAYS = 30
 
-    SERVER_HOST = os.getenv("SERVER_HOST")
-    SERVER_PORT = int(os.getenv("SERVER_PORT"))
+    SERVER_HOST = os.getenv("SERVER_HOST", "0.0.0.0")
+    SERVER_PORT = int(os.getenv("SERVER_PORT", "8000"))
 
     AI_API_KEY = os.getenv(
         "AI_API_KEY",
