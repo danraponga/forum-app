@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 
 from app.core.db import SessionLocal
 from app.models.common.token_type import TokenType
-from app.models.user import User
 from app.repositories.comment_gateway import CommentDbGateway
 from app.repositories.post_gateway import PostDbGateway
 from app.repositories.user_gateway import UserDbGateway

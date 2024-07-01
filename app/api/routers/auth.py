@@ -6,15 +6,7 @@ from app.api.dependencies import (
     get_current_auth_user_refresh,
     get_user_service,
 )
-from app.models.user import User
-from app.repositories.user_gateway import UserDbGateway
-from app.schemas.auth import (
-    RefreshToken,
-    SignInDTO,
-    SignUpDTO,
-    SignUpResultDTO,
-    TokenInfo,
-)
+from app.schemas.auth import SignInDTO, SignUpDTO, SignUpResultDTO, TokenInfo
 from app.schemas.user import UserDTO
 from app.services.auth_service import AuthenticationService
 from app.services.user_service import UserService

@@ -1,14 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from app.api.dependencies import (
-    get_comment_gateway,
     get_comment_service,
     get_current_auth_user,
-    get_post_gateway,
 )
 from app.models.user import User
-from app.repositories.comment_gateway import CommentDbGateway
-from app.repositories.post_gateway import PostDbGateway
 from app.schemas.comment import (
     CommentDTO,
     CommentsListResultDTO,

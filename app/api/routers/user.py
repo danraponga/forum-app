@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from app.api.dependencies import get_user_gateway, get_user_service
 from app.repositories.user_gateway import UserDbGateway

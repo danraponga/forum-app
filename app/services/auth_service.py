@@ -16,7 +16,7 @@ from app.core.security import (
 )
 from app.models.common.token_type import TokenType
 from app.repositories.user_gateway import UserDbGateway
-from app.schemas.auth import RefreshToken, SignInDTO, TokenInfo
+from app.schemas.auth import SignInDTO, TokenInfo
 from app.schemas.user import UserDTO
 
 
