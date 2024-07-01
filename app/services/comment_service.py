@@ -1,6 +1,7 @@
 from typing import List
 
-from app.core.exceptions import EntityNotFoundError, ProfanityContentError
+from app.core.exceptions.common import ProfanityContent
+from app.core.exceptions.entity import CommentNotFound, PostNotFound
 from app.core.utils import contains_profanity
 from app.models.comment import Comment
 from app.models.common.status import Status
@@ -13,6 +14,7 @@ from app.schemas.comment import (
     CreateAICommentDTO,
     CreateCommentDTO,
     DeleteCommentDTO,
+    ReadCommentRequest,
     ReadCommentsListDTO,
     ReadCommentsStatDTO,
     UpdateCommentDTO,
@@ -31,10 +33,10 @@ class CommentService(BaseService):
     def create_comment(self, dto: CreateCommentDTO) -> CommentDTO:
         post = self.post_gateway.get_by_id(dto.post_id)
         if not post:
-            raise EntityNotFoundError("Post not found")
+            raise PostNotFound()
         if dto.parent_comment_id:
             if not self.comment_gateway.get_by_id(dto.post.id, dto.parent_comment_id):
-                raise EntityNotFoundError("Comment not found")
+                raise CommentNotFound()
 
         comment = Comment(
             owner_id=dto.user_id,
@@ -56,9 +58,17 @@ class CommentService(BaseService):
             )
         return CommentDTO.model_validate(comment, from_attributes=True)
 
+    def get_comment(self, dto: ReadCommentRequest) -> CommentDTO:
+        if not self.post_gateway.get_by_id(dto.post_id):
+            raise PostNotFound()
+        comment = self.comment_gateway.get_by_id(dto.post_id, dto.comment_id)
+        if not comment:
+            raise CommentNotFound()
+        return CommentDTO.model_validate(comment, from_attributes=True)
+
     def get_post_comments(self, dto: ReadCommentsListDTO) -> CommentsListResultDTO:
         if not self.post_gateway.get_by_id(dto.post_id):
-            raise EntityNotFoundError()
+            raise PostNotFound()
 
         comments, total = self.comment_gateway.get_list_by_post_id(
             dto.post_id, dto.pagination.skip, dto.pagination.limit
@@ -71,26 +81,26 @@ class CommentService(BaseService):
 
     def update_comment(self, dto: UpdateCommentDTO) -> CommentDTO:
         if not self.post_gateway.get_by_id(dto.post_id):
-            raise EntityNotFoundError("Post not found")
+            raise PostNotFound()
 
         comment = self.comment_gateway.get_by_id(dto.post_id, dto.comment_id)
         if not comment:
-            raise EntityNotFoundError("Comment not found")
+            raise CommentNotFound()
         self.ensure_can_edit(comment.owner_id, dto.user_id)
 
         if contains_profanity(dto.content):
-            raise ProfanityContentError()
+            raise ProfanityContent()
 
         self.comment_gateway.update(comment, dto.model_dump())
         return CommentDTO.model_validate(comment, from_attributes=True)
 
     def delete_comment(self, dto: DeleteCommentDTO) -> CommentDTO:
         if not self.post_gateway.get_by_id(dto.post_id):
-            raise EntityNotFoundError("Post not found")
+            raise PostNotFound()
 
         comment = self.comment_gateway.get_by_id(dto.post_id, dto.comment_id)
         if not comment:
-            raise EntityNotFoundError("Comment not found")
+            raise CommentNotFound()
         self.ensure_can_edit(comment.owner_id, dto.user_id)
 
         self.comment_gateway.delete(comment)
@@ -101,7 +111,7 @@ class CommentService(BaseService):
     ) -> List[CommentsStatResultDTO]:
         post = self.post_gateway.get_by_id(dto.post_id)
         if not post:
-            raise EntityNotFoundError()
+            raise PostNotFound()
         self.ensure_can_edit(post.owner_id, dto.user_id)
 
         statistics = self.comment_gateway.get_statistics_by_date(

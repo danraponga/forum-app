@@ -5,7 +5,7 @@ services:
     build: .
     ports:
       - "8000:8000"
-    command: bash -c "python -m app.main"
+    command: bash -c "python -m app.main.web"
     restart: always
     volumes:
       - .:/forum_app

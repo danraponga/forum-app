@@ -1,4 +1,5 @@
-from app.core.exceptions import EntityNotFoundError, ProfanityContentError
+from app.core.exceptions.common import ProfanityContent
+from app.core.exceptions.entity import PostNotFound
 from app.core.utils import contains_profanity
 from app.models import Post
 from app.models.common.status import Status
@@ -7,6 +8,7 @@ from app.schemas.post import (
     CreatePostDTO,
     DeletePostDTO,
     PostDTO,
+    PostId,
     UpdatePostDTO,
 )
 from app.services.common.base_service import BaseService
@@ -29,14 +31,20 @@ class PostService(BaseService):
         self.post_gateway.create(post)
         return PostDTO.model_validate(post, from_attributes=True)
 
+    def get_post(self, dto: PostId) -> PostDTO:
+        post = self.post_gateway.get_by_id(dto.post_id)
+        if not post:
+            raise PostNotFound()
+        return PostDTO.model_validate(post, from_attributes=True)
+
     def update_post(self, dto: UpdatePostDTO) -> PostDTO:
         post = self.post_gateway.get_by_id(dto.post_id)
         if not post:
-            raise EntityNotFoundError()
+            raise PostNotFound()
         self.ensure_can_edit(post.owner_id, dto.user_id)
 
         if contains_profanity(dto.content):
-            raise ProfanityContentError()
+            raise ProfanityContent()
 
         self.post_gateway.update(post, dto.model_dump())
         return PostDTO.model_validate(post, from_attributes=True)
@@ -44,7 +52,7 @@ class PostService(BaseService):
     def delete_post(self, dto: DeletePostDTO) -> PostDTO:
         post = self.post_gateway.get_by_id(dto.post_id)
         if not post:
-            raise EntityNotFoundError()
+            raise PostNotFound()
         self.ensure_can_edit(post.owner_id, dto.user_id)
 
         self.post_gateway.delete(post)

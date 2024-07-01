@@ -17,8 +17,14 @@ class UserDbGateway:
     def get_by_email(self, email: str) -> User:
         return self.db.query(User).filter(User.email == email).first()
 
-    def get_list(self, skip: int, limit: int) -> list[User]:
-        return self.db.query(User).offset(skip).limit(limit).all()
+    def get_by_username(self, username: str) -> User:
+        return self.db.query(User).filter(User.username == username).first()
+
+    def get_list(self, skip: int, limit: int) -> tuple[list[User], int]:
+        return (
+            self.db.query(User).offset(skip).limit(limit).all(),
+            self.get_total(),
+        )
 
     def get_total(self) -> int:
         return self.db.query(User).count()

@@ -1,4 +1,4 @@
-from app.core.exceptions import AccessDenied
+from app.core.exceptions.common import AccessDenied
 
 
 class BaseService:
