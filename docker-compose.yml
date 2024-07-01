@@ -4,7 +4,7 @@ services:
     container_name: web
     build: .
     ports:
-      - "8000:8000"
+      - "${SERVER_PORT}:${SERVER_PORT}"
     command: bash -c "python -m app.main.web"
     restart: always
     volumes:
