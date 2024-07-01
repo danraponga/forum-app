@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.api.dependencies import get_user_gateway
+from app.api.dependencies import get_user_gateway, get_user_service
 from app.repositories.user_gateway import UserDbGateway
 from app.schemas.pagination import Pagination
-from app.schemas.user import UserDTO, UsersListResultDTO
+from app.schemas.user import UserDTO, UserId, UsersListResultDTO
+from app.services.user_service import UserService
 
 user_router = APIRouter()
 
@@ -13,9 +14,7 @@ def read_users_all(
     pagination: Pagination = Depends(),
     user_gateway: UserDbGateway = Depends(get_user_gateway),
 ) -> UsersListResultDTO:
-    users = user_gateway.get_list(pagination.skip, pagination.limit)
-    total = user_gateway.get_total()
-
+    users, total = user_gateway.get_list(pagination.skip, pagination.limit)
     users_response = [
         UserDTO.model_validate(user, from_attributes=True) for user in users
     ]
@@ -24,9 +23,6 @@ def read_users_all(
 
 @user_router.get("/{user_id}/")
 def read_user(
-    user_id: int, user_gateway: UserDbGateway = Depends(get_user_gateway)
+    user_id: UserId = Depends(), user_service: UserService = Depends(get_user_service)
 ) -> UserDTO:
-    user = user_gateway.get_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return UserDTO.model_validate(user, from_attributes=True)
+    return user_service.get_user(user_id)

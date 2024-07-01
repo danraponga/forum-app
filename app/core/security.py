@@ -4,6 +4,7 @@ from jose import jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
+from app.models.common.token_type import TokenType
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -29,7 +30,7 @@ def create_token(token_type: str, secret_key: str, expire: datetime, sub: str) -
 def create_access_token(user_id: int) -> str:
     expire = datetime.now() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return create_token(
-        token_type=ACCESS_TOKEN_TYPE,
+        token_type=TokenType.ACCESS.value,
         secret_key=settings.SECRET_KEY,
         expire=expire,
         sub=str(user_id),
@@ -39,7 +40,7 @@ def create_access_token(user_id: int) -> str:
 def create_refresh_token(user_id: int) -> str:
     expire = datetime.now() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     return create_token(
-        token_type=REFRESH_TOKEN_TYPE,
+        token_type=TokenType.REFRESH.value,
         secret_key=settings.SECRET_KEY,
         expire=expire,
         sub=str(user_id),

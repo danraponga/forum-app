@@ -11,6 +11,10 @@ class UserDTO(BaseModel):
     created_at: datetime
 
 
+class UserId(BaseModel):
+    user_id: int
+
+
 class UsersListResultDTO(BaseModel):
     users: List[UserDTO]
     total: int

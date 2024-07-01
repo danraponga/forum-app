@@ -12,7 +12,7 @@ celery = Celery(__name__, broker=settings.REDIS_URL)
 
 
 @celery.task
-def create_comment_by_ai(data: dict):
+def create_comment_by_ai(data: dict) -> None:
     post_gateway = PostDbGateway(SessionLocal())
     comment_gateway = CommentDbGateway(SessionLocal())
 
