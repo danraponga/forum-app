@@ -1,0 +1,23 @@
+version: "3.8"
+services:
+  test_db:
+    container_name: test_database
+    image: postgres:14.1-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_TEST_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_TEST_DB}
+    ports:
+      - "6000:5432"
+    networks:
+      mynetwork:
+        ipv4_address: 192.161.100.10
+
+networks:
+  mynetwork:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.161.100.0/24
+

@@ -69,7 +69,8 @@ def get_current_auth_user(
     token: HTTPAuthorizationCredentials = Depends(bearer),
     auth_service: AuthenticationService = Depends(get_auth_service),
 ) -> UserDTO:
-    return auth_service.get_auth_user(token.credentials, TokenType.ACCESS)
+    credentials = token.credentials if token else None
+    return auth_service.get_auth_user(credentials, TokenType.ACCESS)
 
 
 def get_current_auth_user_refresh(
