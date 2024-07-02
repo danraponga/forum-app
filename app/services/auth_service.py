@@ -26,8 +26,6 @@ class AuthenticationService:
 
     def authenticate(self, credentials: SignInDTO) -> TokenInfo:
         user = self.user_gateway.get_by_email(credentials.email)
-        if not user:
-            raise UserNotFound()
         if not user or not verify_password(credentials.password, user.hashed_password):
             raise InvalidCredentials()
         return self.generate_tokens(user.id)

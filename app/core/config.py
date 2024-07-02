@@ -7,6 +7,7 @@ load_dotenv()
 
 class Config:
     DB_URI = os.getenv("DB_URI")
+    TEST_DB_URI = os.getenv("TEST_DB_URI")
     REDIS_URL = os.getenv("REDIS_URL")
 
     SECRET_KEY = os.getenv("SECRET_KEY")
