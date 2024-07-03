@@ -5,7 +5,7 @@ from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.db import async_session
+from app.core.db import sessionmanager
 from app.models.common.enums.token_type import TokenType
 from app.repositories.comment_gateway import CommentDbGateway
 from app.repositories.post_gateway import PostDbGateway
@@ -21,7 +21,7 @@ bearer = HTTPBearer(auto_error=False)
 
 
 async def get_db() -> AsyncIterator[AsyncSession]:
-    async with async_session() as db:
+    async with sessionmanager.session() as db:
         yield db
 
 

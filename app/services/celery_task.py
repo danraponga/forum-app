@@ -1,7 +1,7 @@
 from celery import Celery
 
 from app.core.config import settings
-from app.core.db import async_session
+from app.core.db import sessionmanager
 from app.core.utils import generate_ai_response
 from app.models import Comment
 from app.repositories.comment_gateway import CommentDbGateway
@@ -13,7 +13,7 @@ celery = Celery(__name__, broker=settings.REDIS_URL)
 
 @celery.task
 async def create_comment_by_ai(data: dict) -> None:
-    async with async_session() as session:
+    async with sessionmanager.session() as session:
         post_gateway = PostDbGateway(session)
         comment_gateway = CommentDbGateway(session)
 

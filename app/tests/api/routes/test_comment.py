@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import UTC, datetime, timedelta
 
 from app.models.common.enums.status import Status
 from app.tests.conftest import test_comments
@@ -170,7 +170,7 @@ async def test_delete_comment_access_denied(client, test_db_comments, user_token
 
 
 async def test_get_comments_statistics(client, test_db_comments, user_token_1):
-    today = date.today()
+    today = datetime.now(UTC).date()
     tomorrow = today + timedelta(days=1)
     response = await client.get(
         f"{API_PREFIX}/1/comments-daily-breakdown?date_from={today}&date_to={tomorrow}",
