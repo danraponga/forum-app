@@ -4,7 +4,7 @@ from jose import jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
-from app.models.common.token_type import TokenType
+from app.models.common.enums.token_type import TokenType
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

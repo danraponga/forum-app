@@ -3,7 +3,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from app.models.common.status import Status
+from app.models.common.enums.status import Status
 
 
 class PostDTO(BaseModel):

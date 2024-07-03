@@ -1,5 +1,5 @@
 from app.core.security import create_access_token
-from app.models.common.status import Status
+from app.models.common.enums.status import Status
 from app.tests.conftest import test_posts, test_users
 from app.tests.error_validator import validate_error
 
