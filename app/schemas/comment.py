@@ -63,7 +63,7 @@ class ReadCommentsStatRequest(PostId):
 
     @model_validator(mode="before")
     @classmethod
-    def check_card_number_omitted(cls, data: Any) -> Any:
+    def validate_dates(cls, data: Any) -> Any:
         if data["date_from"] > data["date_to"]:
             raise ValueError("date_to must be greater than or equal to date_from")
         return data

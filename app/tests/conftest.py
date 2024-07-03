@@ -1,9 +1,8 @@
-from typing import Any
+import asyncio
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.api.dependencies import get_db
 from app.core.config import settings
@@ -13,48 +12,59 @@ from app.main.web import create_app
 from app.models import Comment, Post, User
 from app.tests.api.models import test_comments, test_posts, test_users
 
-engine_test = create_engine(settings.TEST_DB_URI)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine_test)
+async_engine = create_async_engine(settings.TEST_DB_URI, echo=True)
+async_session = async_sessionmaker(
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+    bind=async_engine,
+)
 
 
-TABLES = ["user", "post", "comment"]
-
-
-def override_get_db():
-    try:
-        db = SessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-@pytest.fixture(scope="session", autouse=True)
-def prepare_test_db():
-    Base.metadata.create_all(bind=engine_test)
-    yield
-
-
-@pytest.fixture(scope="module")
-def client(prepare_test_db):
-    app = create_app()
-    app.dependency_overrides[get_db] = override_get_db
-    return TestClient(app)
+@pytest.fixture(scope="session")
+def event_loop():
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(scope="function", autouse=True)
-def clean_tables():
-    with SessionLocal() as db:
-        with db.begin():
-            for table in TABLES:
-                db.execute(text(f'TRUNCATE TABLE "{table}" CASCADE;'))
+async def async_db_engine():
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
 
 
-def add_to_db(model: Any):
-    with SessionLocal() as db:
-        db.add(model)
-        db.commit()
-        db.refresh(model)
-    return model
+async def override_get_db():
+    async_session = async_sessionmaker(
+        expire_on_commit=False,
+        autocommit=False,
+        autoflush=False,
+        bind=async_engine,
+    )
+    async with async_session() as db:
+        yield db
+
+
+# @pytest.fixture(scope="function", autouse=True)
+# async def async_db():
+#     async_session = async_sessionmaker(
+#         expire_on_commit=False,
+#         autocommit=False,
+#         autoflush=False,
+#         bind=async_engine,
+#     )
+#     async with async_session() as db:
+#         yield db
+
+
+@pytest.fixture(scope="session")
+async def client() -> AsyncClient:
+    app = create_app()
+    transport = ASGITransport(app=app)
+    app.dependency_overrides[get_db] = override_get_db
+    return AsyncClient(transport=transport, base_url="http://test")
 
 
 @pytest.fixture
@@ -88,41 +98,54 @@ def mock_comment_data():
     return {"content": "Test comment content"}
 
 
-@pytest.fixture
-def test_db_user():
-    return add_to_db(User(**test_users[0]))
+async def add_model(model):
+    async with async_session() as db:
+        db.add(model)
+        await db.commit()
+        await db.refresh(model)
+    return model
 
 
 @pytest.fixture
-def test_db_users():
-    return [add_to_db(User(**user)) for user in test_users]
+async def test_db_user():
+    # user = User(**test_users[0])
+    # async_db.add(user)
+    # await async_db.commit()
+    # await async_db.refresh(user)
+    # return user
+    return await add_model(User(**test_users[0]))
 
 
 @pytest.fixture
-def test_db_post(test_db_user):
-    return add_to_db(Post(**test_posts[0]))
+async def test_db_users():
+    return [await add_model(User(**user)) for user in test_users]
 
 
 @pytest.fixture
-def test_db_posts(test_db_users):
-    return [add_to_db(Post(**post)) for post in test_posts]
+async def test_db_post(test_db_user):
+    return await add_model(Post(**test_posts[0]))
+
+
+@pytest.fixture
+async def test_db_posts(test_db_users):
+    return [await add_model(Post(**post)) for post in test_posts]
 
 
 @pytest.fixture()
-def test_db_comment(test_db_post):
-    return add_to_db(Comment(**test_comments[0]))
+async def test_db_comment(test_db_post):
+    return await add_model(Comment(**test_comments[0]))
 
 
 @pytest.fixture()
-def test_db_comments(test_db_posts):
-    return [add_to_db(Comment(**comment)) for comment in test_comments]
+async def test_db_comments(test_db_posts):
+    return [await add_model(Comment(**comment)) for comment in test_comments]
 
 
 @pytest.fixture
-def user_token_1():
+async def user_token_1():
     return create_access_token(1)
 
 
 @pytest.fixture
-def user_token_2():
+async def user_token_2():
     return create_access_token(2)

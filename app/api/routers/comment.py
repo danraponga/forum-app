@@ -1,9 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from app.api.dependencies import (
-    get_comment_service,
-    get_current_auth_user,
-)
+from app.api.dependencies import get_comment_service, get_current_auth_user
 from app.models.user import User
 from app.schemas.comment import (
     CommentDTO,
@@ -27,7 +24,7 @@ comment_router = APIRouter()
 
 
 @comment_router.post("/{post_id}/comments/")
-def create_comment(
+async def create_comment(
     body: CreateCommentRequest,
     post_id: PostId = Depends(),
     current_user: User = Depends(get_current_auth_user),
@@ -36,29 +33,29 @@ def create_comment(
     dto = CreateCommentDTO(
         user_id=current_user.id, post_id=post_id.post_id, **body.model_dump()
     )
-    return comment_service.create_comment(dto)
+    return await comment_service.create_comment(dto)
 
 
 @comment_router.get("/{post_id}/comments/")
-def read_all_comments(
+async def read_all_comments(
     post_id: PostId = Depends(),
     pagination: Pagination = Depends(),
     comment_service: CommentService = Depends(get_comment_service),
 ) -> CommentsListResultDTO:
     dto = ReadCommentsListDTO(post_id=post_id.post_id, pagination=pagination)
-    return comment_service.get_post_comments(dto)
+    return await comment_service.get_post_comments(dto)
 
 
 @comment_router.get("/{post_id}/comments/{comment_id}/")
-def read_comment(
+async def read_comment(
     query: ReadCommentRequest = Depends(),
     comment_service: CommentService = Depends(get_comment_service),
 ) -> CommentDTO:
-    return comment_service.get_comment(query)
+    return await comment_service.get_comment(query)
 
 
 @comment_router.patch("/{post_id}/comments/{comment_id}/")
-def update_comment(
+async def update_comment(
     body: UserCommentData,
     query: ReadCommentRequest = Depends(),
     current_user: User = Depends(get_current_auth_user),
@@ -67,24 +64,24 @@ def update_comment(
     dto = UpdateCommentDTO(
         user_id=current_user.id, content=body.content, **query.model_dump()
     )
-    return comment_service.update_comment(dto)
+    return await comment_service.update_comment(dto)
 
 
 @comment_router.delete("/{post_id}/comments/{comment_id}/")
-def delete_comment(
+async def delete_comment(
     query: ReadCommentRequest = Depends(),
     current_user: User = Depends(get_current_auth_user),
     comment_service: CommentService = Depends(get_comment_service),
 ) -> CommentDTO:
     dto = DeleteCommentDTO(user_id=current_user.id, **query.model_dump())
-    return comment_service.delete_comment(dto)
+    return await comment_service.delete_comment(dto)
 
 
 @comment_router.get("/{post_id}/comments-daily-breakdown")
-def get_comments_statistics(
+async def get_comments_statistics(
     query: ReadCommentsStatRequest = Depends(),
     current_user: User = Depends(get_current_auth_user),
     comment_service: CommentService = Depends(get_comment_service),
 ) -> list[CommentsStatResultDTO]:
     dto = ReadCommentsStatDTO(user_id=current_user.id, **query.model_dump())
-    return comment_service.get_comment_statisctics(dto)
+    return await comment_service.get_comment_statisctics(dto)

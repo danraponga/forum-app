@@ -18,7 +18,7 @@ class PostService(BaseService):
     def __init__(self, post_gateway: PostDbGateway) -> None:
         self.post_gateway = post_gateway
 
-    def create_post(self, dto: CreatePostDTO) -> PostDTO:
+    async def create_post(self, dto: CreatePostDTO) -> PostDTO:
         post = Post(
             owner_id=dto.user_id,
             content=dto.content,
@@ -28,17 +28,17 @@ class PostService(BaseService):
         if contains_profanity(dto.content):
             post.status = Status.BANNED
 
-        self.post_gateway.create(post)
+        await self.post_gateway.create(post)
         return PostDTO.model_validate(post, from_attributes=True)
 
-    def get_post(self, dto: PostId) -> PostDTO:
-        post = self.post_gateway.get_by_id(dto.post_id)
+    async def get_post(self, dto: PostId) -> PostDTO:
+        post = await self.post_gateway.get_by_id(dto.post_id)
         if not post:
             raise PostNotFound()
         return PostDTO.model_validate(post, from_attributes=True)
 
-    def update_post(self, dto: UpdatePostDTO) -> PostDTO:
-        post = self.post_gateway.get_by_id(dto.post_id)
+    async def update_post(self, dto: UpdatePostDTO) -> PostDTO:
+        post = await self.post_gateway.get_by_id(dto.post_id)
         if not post:
             raise PostNotFound()
         self.ensure_can_edit(post.owner_id, dto.user_id)
@@ -46,14 +46,14 @@ class PostService(BaseService):
         if contains_profanity(dto.content):
             raise ProfanityContent()
 
-        self.post_gateway.update(post, dto.model_dump())
+        await self.post_gateway.update(post, dto.model_dump())
         return PostDTO.model_validate(post, from_attributes=True)
 
-    def delete_post(self, dto: DeletePostDTO) -> PostDTO:
-        post = self.post_gateway.get_by_id(dto.post_id)
+    async def delete_post(self, dto: DeletePostDTO) -> PostDTO:
+        post = await self.post_gateway.get_by_id(dto.post_id)
         if not post:
             raise PostNotFound()
         self.ensure_can_edit(post.owner_id, dto.user_id)
 
-        self.post_gateway.delete(post)
+        await self.post_gateway.delete(post)
         return PostDTO.model_validate(post, from_attributes=True)

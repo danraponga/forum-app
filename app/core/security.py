@@ -9,8 +9,6 @@ from app.models.common.token_type import TokenType
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 TOKEN_TYPE_FIELD = "type"
-ACCESS_TOKEN_TYPE = "access"
-REFRESH_TOKEN_TYPE = "refresh"
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

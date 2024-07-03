@@ -24,13 +24,13 @@ class AuthenticationService:
     def __init__(self, user_gateway: UserDbGateway) -> None:
         self.user_gateway = user_gateway
 
-    def authenticate(self, credentials: SignInDTO) -> TokenInfo:
-        user = self.user_gateway.get_by_email(credentials.email)
+    async def authenticate(self, credentials: SignInDTO) -> TokenInfo:
+        user = await self.user_gateway.get_by_email(credentials.email)
         if not user or not verify_password(credentials.password, user.hashed_password):
             raise InvalidCredentials()
         return self.generate_tokens(user.id)
 
-    def get_auth_user(self, token: str | None, token_type: TokenType) -> UserDTO:
+    def validate_token(self, token: str | None, token_type: TokenType) -> int:
         if not token:
             raise NotAuthorized()
         try:
@@ -41,15 +41,16 @@ class AuthenticationService:
             raise InvalidCredentials()
         if not payload.get(TOKEN_TYPE_FIELD) == token_type:
             raise InvalidTokenType()
+        return int(payload.get("sub"))
 
-        user = self.user_gateway.get_by_id(payload.get("sub"))
+    async def get_auth_user(self, token: str | None, token_type: TokenType) -> UserDTO:
+        user_id = self.validate_token(token, token_type)
+        user = await self.user_gateway.get_by_id(user_id)
         if not user:
             raise UserNotFound()
-
         return UserDTO.model_validate(user, from_attributes=True)
 
     def generate_tokens(self, user_id: int, access_only: bool = False) -> TokenInfo:
-
         return TokenInfo(
             access_token=create_access_token(user_id),
             refresh_token=None if access_only else create_refresh_token(user_id),

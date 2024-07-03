@@ -10,11 +10,11 @@ user_router = APIRouter()
 
 
 @user_router.get("/")
-def read_users_all(
+async def read_users_all(
     pagination: Pagination = Depends(),
     user_gateway: UserDbGateway = Depends(get_user_gateway),
 ) -> UsersListResultDTO:
-    users, total = user_gateway.get_list(pagination.skip, pagination.limit)
+    users, total = await user_gateway.get_list(pagination.skip, pagination.limit)
     users_response = [
         UserDTO.model_validate(user, from_attributes=True) for user in users
     ]
@@ -22,7 +22,7 @@ def read_users_all(
 
 
 @user_router.get("/{user_id}/")
-def read_user(
+async def read_user(
     user_id: UserId = Depends(), user_service: UserService = Depends(get_user_service)
 ) -> UserDTO:
-    return user_service.get_user(user_id)
+    return await user_service.get_user(user_id)

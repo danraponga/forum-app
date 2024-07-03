@@ -1,11 +1,11 @@
-from typing import Generator
+from typing import AsyncIterator
 
 from fastapi import Depends
 from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.db import SessionLocal
+from app.core.db import async_session
 from app.models.common.token_type import TokenType
 from app.repositories.comment_gateway import CommentDbGateway
 from app.repositories.post_gateway import PostDbGateway
@@ -20,61 +20,58 @@ from app.services.user_service import UserService
 bearer = HTTPBearer(auto_error=False)
 
 
-def get_db() -> Generator:
-    try:
-        db = SessionLocal()
+async def get_db() -> AsyncIterator[AsyncSession]:
+    async with async_session() as db:
         yield db
-    finally:
-        db.close()
 
 
-def get_user_gateway(db: Session = Depends(get_db)) -> UserDbGateway:
+async def get_user_gateway(db: AsyncSession = Depends(get_db)) -> UserDbGateway:
     return UserDbGateway(db)
 
 
-def get_post_gateway(db: Session = Depends(get_db)) -> PostDbGateway:
+async def get_post_gateway(db: AsyncSession = Depends(get_db)) -> PostDbGateway:
     return PostDbGateway(db)
 
 
-def get_post_service(
+async def get_post_service(
     gateway: PostDbGateway = Depends(get_post_gateway),
 ) -> PostService:
     return PostService(gateway)
 
 
-def get_comment_gateway(db: Session = Depends(get_db)) -> CommentDbGateway:
+async def get_comment_gateway(db: AsyncSession = Depends(get_db)) -> CommentDbGateway:
     return CommentDbGateway(db)
 
 
-def get_auth_service(
+async def get_auth_service(
     gateway: UserDbGateway = Depends(get_user_gateway),
-) -> UserDbGateway:
+) -> AuthenticationService:
     return AuthenticationService(gateway)
 
 
-def get_comment_service(
+async def get_comment_service(
     comment_gateway: CommentDbGateway = Depends(get_comment_gateway),
     post_gateway: PostDbGateway = Depends(get_post_gateway),
 ) -> CommentService:
     return CommentService(comment_gateway, post_gateway)
 
 
-def get_user_service(
+async def get_user_service(
     gateway: UserDbGateway = Depends(get_user_gateway),
 ) -> UserService:
     return UserService(gateway)
 
 
-def get_current_auth_user(
+async def get_current_auth_user(
     token: HTTPAuthorizationCredentials = Depends(bearer),
     auth_service: AuthenticationService = Depends(get_auth_service),
 ) -> UserDTO:
     credentials = token.credentials if token else None
-    return auth_service.get_auth_user(credentials, TokenType.ACCESS)
+    return await auth_service.get_auth_user(credentials, TokenType.ACCESS)
 
 
-def get_current_auth_user_refresh(
+async def get_current_auth_user_refresh(
     token: RefreshToken,
     auth_service: AuthenticationService = Depends(get_auth_service),
 ) -> UserDTO:
-    return auth_service.get_auth_user(token.refresh_token, TokenType.REFRESH)
+    return await auth_service.get_auth_user(token.refresh_token, TokenType.REFRESH)

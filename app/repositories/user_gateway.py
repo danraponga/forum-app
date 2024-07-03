@@ -1,30 +1,36 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import func
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from app.models.user import User
 
 
 class UserDbGateway:
-    def __init__(self, db: Session) -> None:
+    def __init__(self, db: AsyncSession) -> None:
         self.db = db
 
-    def create(self, user: User) -> None:
+    async def create(self, user: User) -> None:
         self.db.add(user)
-        self.db.commit()
+        await self.db.commit()
 
-    def get_by_id(self, user_id: int) -> User:
-        return self.db.query(User).filter(User.id == user_id).first()
+    async def get_by_id(self, user_id: int) -> User:
+        result = await self.db.execute(select(User).filter(User.id == user_id))
+        return result.scalars().first()
 
-    def get_by_email(self, email: str) -> User:
-        return self.db.query(User).filter(User.email == email).first()
+    async def get_by_email(self, email: str) -> User:
+        result = await self.db.execute(select(User).filter(User.email == email))
+        return result.scalars().one_or_none()
 
-    def get_by_username(self, username: str) -> User:
-        return self.db.query(User).filter(User.username == username).first()
+    async def get_by_username(self, username: str) -> User:
+        result = await self.db.execute(select(User).filter(User.username == username))
+        return result.scalars().first()
 
-    def get_list(self, skip: int, limit: int) -> tuple[list[User], int]:
-        return (
-            self.db.query(User).offset(skip).limit(limit).all(),
-            self.get_total(),
-        )
+    async def get_list(self, skip: int, limit: int) -> tuple[list[User], int]:
+        result = await self.db.execute(select(User).offset(skip).limit(limit))
+        users = result.scalars().all()
+        total = await self.get_total()
+        return users, total
 
-    def get_total(self) -> int:
-        return self.db.query(User).count()
+    async def get_total(self) -> int:
+        result = await self.db.execute(select(func.count()).select_from(User))
+        return result.scalar_one()

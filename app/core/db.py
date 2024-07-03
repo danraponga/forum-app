@@ -1,8 +1,7 @@
 from typing import Any
 
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
-from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 
@@ -18,5 +17,5 @@ class Base:
         return cls.__name__.lower()
 
 
-engine = create_engine(settings.DB_URI)
-SessionLocal = sessionmaker(autoflush=False, bind=engine)
+async_engine = create_async_engine(settings.DB_URI, future=True)
+async_session = async_sessionmaker(async_engine, expire_on_commit=False)
