@@ -8,7 +8,7 @@ from app.core.exceptions.entity import EntityNotFoundError, UserAlreadyExists
 
 
 async def validation_error_handler(request: Request, exc: ValidationError):
-    return JSONResponse(status_code=422, content={"detail": exc.errors()})
+    return JSONResponse(status_code=422, content={"detail": exc.errors()[0]["msg"]})
 
 
 async def authentication_error_handler(request: Request, exc: AuthenticationError):

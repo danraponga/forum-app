@@ -3,8 +3,8 @@ from app.tests.conftest import test_users
 API_PREFIX = "/api/users"
 
 
-def test_read_users_all(client, test_db_users):
-    response = client.get(f"{API_PREFIX}/")
+async def test_read_users_all(client, test_db_users):
+    response = await client.get(f"{API_PREFIX}/")
     assert response.status_code == 200
 
     data = response.json()
@@ -14,16 +14,16 @@ def test_read_users_all(client, test_db_users):
     assert data["users"][1]["email"] == test_users[1]["email"]
 
 
-def test_read_user(client, test_db_user):
-    response = client.get(f"{API_PREFIX}/{test_db_user.id}/")
+async def test_read_user(client, test_db_user):
+    response = await client.get(f"{API_PREFIX}/{test_db_user.id}/")
     assert response.status_code == 200
 
     data = response.json()
     assert data["email"] == test_db_user.email
 
 
-def test_read_user_not_found(client):
-    response = client.get(f"{API_PREFIX}/9999/")
+async def test_read_user_not_found(client):
+    response = await client.get(f"{API_PREFIX}/9999/")
     assert response.status_code == 404
     data = response.json()
     assert data["detail"] == "User not found"

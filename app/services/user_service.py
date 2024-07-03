@@ -10,10 +10,10 @@ class UserService:
     def __init__(self, user_gateway: UserDbGateway) -> None:
         self.user_gateway = user_gateway
 
-    def create_user(self, dto: SignUpDTO) -> UserDTO:
-        if self.user_gateway.get_by_email(dto.email):
+    async def create_user(self, dto: SignUpDTO) -> UserDTO:
+        if await self.user_gateway.get_by_email(dto.email):
             raise UserAlreadyExists("User with this email already exists")
-        if self.user_gateway.get_by_username(dto.username):
+        if await self.user_gateway.get_by_username(dto.username):
             raise UserAlreadyExists("User with this username already exists")
 
         user = User(
@@ -21,11 +21,11 @@ class UserService:
             email=dto.email,
             hashed_password=get_password_hash(dto.password),
         )
-        self.user_gateway.create(user)
+        await self.user_gateway.create(user)
         return UserDTO.model_validate(user, from_attributes=True)
 
-    def get_user(self, dto: UserId) -> UserDTO:
-        user = self.user_gateway.get_by_id(dto.user_id)
+    async def get_user(self, dto: UserId) -> UserDTO:
+        user = await self.user_gateway.get_by_id(dto.user_id)
         if not user:
             raise UserNotFound()
 
