@@ -3,7 +3,7 @@ from typing import Any, List
 
 from pydantic import BaseModel, Field, model_validator
 
-from app.models.common.status import Status
+from app.models.common.enums.status import Status
 from app.schemas.pagination import Pagination
 from app.schemas.post import PostId
 
@@ -12,7 +12,7 @@ class CommentDTO(BaseModel):
     id: int
     owner_id: int
     post_id: int
-    parent_comment_id: int | None
+    parent_id: int | None
     content: str
     status: Status
     created_at: datetime
@@ -24,7 +24,7 @@ class UserCommentData(BaseModel):
 
 
 class CreateCommentRequest(UserCommentData):
-    parent_comment_id: int | None = Field(default=None, examples=[None])
+    parent_id: int | None = Field(default=None, examples=[None])
 
 
 class CreateCommentDTO(PostId, CreateCommentRequest):

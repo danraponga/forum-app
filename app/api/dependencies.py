@@ -6,7 +6,7 @@ from fastapi.security.http import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import async_session
-from app.models.common.token_type import TokenType
+from app.models.common.enums.token_type import TokenType
 from app.repositories.comment_gateway import CommentDbGateway
 from app.repositories.post_gateway import PostDbGateway
 from app.repositories.user_gateway import UserDbGateway

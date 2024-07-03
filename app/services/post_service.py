@@ -2,7 +2,7 @@ from app.core.exceptions.common import ProfanityContent
 from app.core.exceptions.entity import PostNotFound
 from app.core.utils import contains_profanity
 from app.models import Post
-from app.models.common.status import Status
+from app.models.common.enums.status import Status
 from app.repositories.post_gateway import PostDbGateway
 from app.schemas.post import (
     CreatePostDTO,

@@ -1,4 +1,4 @@
-from app.models.common.status import Status
+from app.models.common.enums.status import Status
 
 test_users = [
     {

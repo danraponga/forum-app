@@ -2,6 +2,7 @@ import asyncio
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.api.dependencies import get_db
@@ -30,8 +31,9 @@ def event_loop():
 
 
 @pytest.fixture(scope="function", autouse=True)
-async def async_db_engine():
+async def prepare_db():
     async with async_engine.begin() as conn:
+        await conn.execute(text("DROP TYPE status CASCADE;"))
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 

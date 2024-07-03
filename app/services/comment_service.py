@@ -4,7 +4,7 @@ from app.core.exceptions.common import ProfanityContent
 from app.core.exceptions.entity import CommentNotFound, PostNotFound
 from app.core.utils import contains_profanity
 from app.models.comment import Comment
-from app.models.common.status import Status
+from app.models.common.enums.status import Status
 from app.repositories.comment_gateway import CommentDbGateway
 from app.repositories.post_gateway import PostDbGateway
 from app.schemas.comment import (
@@ -34,16 +34,14 @@ class CommentService(BaseService):
         post = await self.post_gateway.get_by_id(dto.post_id)
         if not post:
             raise PostNotFound()
-        if dto.parent_comment_id:
-            if not await self.comment_gateway.get_by_id(
-                dto.post_id, dto.parent_comment_id
-            ):
+        if dto.parent_id:
+            if not await self.comment_gateway.get_by_id(dto.post_id, dto.parent_id):
                 raise CommentNotFound()
 
         comment = Comment(
             owner_id=dto.user_id,
             post_id=dto.post_id,
-            parent_comment_id=dto.parent_comment_id,
+            parent_id=dto.parent_id,
             content=dto.content,
         )
         if contains_profanity(dto.content):

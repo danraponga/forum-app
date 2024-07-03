@@ -1,26 +1,31 @@
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, func
-from sqlalchemy.orm import relationship
+from typing import List
+
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
-from app.models.common.status import Status
+from app.models.common.enums.status import Status
+from app.models.common.timestamped import TimestampedModel
 
 
-class Comment(Base):
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    owner_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    post_id = Column(Integer, ForeignKey("post.id"), nullable=False)
-    parent_comment_id = Column(Integer, ForeignKey("comment.id"), nullable=True)
-    content = Column(String, nullable=False)
-    status = Column(Enum(Status), default=Status.ACTIVE)
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, onupdate=func.now())
+class Comment(Base, TimestampedModel):
+    __tablename__ = "comments"
 
-    children = relationship(
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id"), nullable=False)
+    parent_id: Mapped[int | None] = mapped_column(ForeignKey("comments.id"), nullable=True)
+    content: Mapped[str] = mapped_column(nullable=False)
+    status: Mapped[Status] = mapped_column(default=Status.ACTIVE)
+
+    children: Mapped[List["Comment"]] = relationship(
         "Comment",
-        backref="parent",
-        remote_side=[id],
+        back_populates="parent",
         cascade="all, delete-orphan",
         single_parent=True,
     )
-    owner = relationship("User", back_populates="comments")
-    post = relationship("Post", back_populates="comments")
+    parent: Mapped["Comment"] = relationship(
+        "Comment", back_populates="children", remote_side=[id]
+    )
+    owner: Mapped["User"] = relationship("User", back_populates="comments")
+    post: Mapped["Post"] = relationship("Post", back_populates="comments")
