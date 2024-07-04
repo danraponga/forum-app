@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import List
 
 from app.core.exceptions.common import ProfanityContent
@@ -19,7 +20,7 @@ from app.schemas.comment import (
     ReadCommentsStatDTO,
     UpdateCommentDTO,
 )
-from app.services.celery_task import create_comment_by_ai
+from app.services.scheduler import schedule_create_comment_by_ai_task
 from app.services.common.base_service import BaseService
 
 
@@ -53,9 +54,9 @@ class CommentService(BaseService):
                 post_id=post.id,
                 parent_id=comment.id,
             )
-            create_comment_by_ai.apply_async(
-                [ai_dto.model_dump()], countdown=post.ai_delay_minutes * 60
-            )
+            run_date = datetime.now() + timedelta(minutes=post.ai_delay_minutes)
+            schedule_create_comment_by_ai_task(ai_dto, run_date)
+            
         return CommentDTO.model_validate(comment, from_attributes=True)
 
     async def get_comment(self, dto: ReadCommentRequest) -> CommentDTO:

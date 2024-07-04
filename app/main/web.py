@@ -4,10 +4,10 @@ from fastapi import FastAPI
 from app.core.config import settings
 from app.main.exc_handlers import init_exception_handlers
 from app.main.routers import init_routers
-
+from app.main.lifespan import lifespan
 
 def create_app() -> FastAPI:
-    app = FastAPI()
+    app = FastAPI(lifespan=lifespan)
     init_routers(app)
     init_exception_handlers(app)
     return app
