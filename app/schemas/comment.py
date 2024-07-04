@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any, List
+from typing import List
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -63,7 +63,7 @@ class ReadCommentsStatRequest(PostId):
 
     @model_validator(mode="before")
     @classmethod
-    def validate_dates(cls, data: Any) -> Any:
+    def validate_dates(cls, data: dict) -> dict:
         if data["date_from"] > data["date_to"]:
             raise ValueError("date_to must be greater than or equal to date_from")
         return data

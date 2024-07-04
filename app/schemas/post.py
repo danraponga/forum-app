@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.models.common.enums.status import Status
 
@@ -20,7 +20,7 @@ class PostId(BaseModel):
 
 
 class CreatePostRequest(BaseModel):
-    content: str
+    content: str = Field(examples=["Your content here"])
     ai_enabled: bool = False
     ai_delay_minutes: int | None = None
 

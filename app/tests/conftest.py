@@ -49,18 +49,6 @@ async def override_get_db():
         yield db
 
 
-# @pytest.fixture(scope="function", autouse=True)
-# async def async_db():
-#     async_session = async_sessionmaker(
-#         expire_on_commit=False,
-#         autocommit=False,
-#         autoflush=False,
-#         bind=async_engine,
-#     )
-#     async with async_session() as db:
-#         yield db
-
-
 @pytest.fixture(scope="session")
 async def client() -> AsyncClient:
     app = create_app()
@@ -74,7 +62,7 @@ def mock_user_data():
     return {
         "email": "test@example.com",
         "username": "testuser",
-        "password": "password",
+        "password": "password1",
     }
 
 
@@ -110,11 +98,6 @@ async def add_model(model):
 
 @pytest.fixture
 async def test_db_user():
-    # user = User(**test_users[0])
-    # async_db.add(user)
-    # await async_db.commit()
-    # await async_db.refresh(user)
-    # return user
     return await add_model(User(**test_users[0]))
 
 
