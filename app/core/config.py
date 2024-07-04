@@ -8,7 +8,9 @@ load_dotenv()
 class Config:
     DB_URI = os.getenv("DB_URI")
     TEST_DB_URI = os.getenv("TEST_DB_URI")
-    REDIS_URL = os.getenv("REDIS_URL")
+    
+    REDIS_HOST = os.getenv("REDIS_HOST")
+    REDIS_PORT = os.getenv("REDIS_PORT")
 
     SECRET_KEY = os.getenv("SECRET_KEY")
     HASH_ALGORITHM = "HS256"
