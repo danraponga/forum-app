@@ -24,7 +24,7 @@ cp .env.sample .env
 ```
 
 
-Go to https://console.groq.com/keys and generate API key for GroqAI or you can try user mine if it works.
+Go to https://console.groq.com/keys and generate API key for GroqAI or you can try use default key.
 
 
 Set `AI_PROMPT` in `app.core.config` as you want or leave it as default. The PROMPT serves as system insctruction for AI.
