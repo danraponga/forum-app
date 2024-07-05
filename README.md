@@ -57,7 +57,7 @@ chmod +x run_tests.sh
 ./run_tests.sh
 ```
 
-Or you can run it's manually:
+Or you can run it manually:
 ```
 pip install pytest
 
