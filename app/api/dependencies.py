@@ -1,64 +1,77 @@
-from typing import Generator
+from typing import AsyncIterator
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
-from jose.exceptions import JWTError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.db import SessionLocal
-from app.core.security import (
-    ACCESS_TOKEN_TYPE,
-    REFRESH_TOKEN_TYPE,
-    TOKEN_TYPE_FIELD,
-    decode_token,
-)
-from app.models.user import User
+from app.core.db import sessionmanager
+from app.models.common.enums.token_type import TokenType
+from app.repositories.comment_gateway import CommentDbGateway
+from app.repositories.post_gateway import PostDbGateway
 from app.repositories.user_gateway import UserDbGateway
 from app.schemas.auth import RefreshToken
+from app.schemas.user import UserDTO
+from app.services.auth_service import AuthenticationService
+from app.services.comment_service import CommentService
+from app.services.post_service import PostService
+from app.services.user_service import UserService
 
 bearer = HTTPBearer(auto_error=False)
 
 
-def get_db() -> Generator:
-    try:
-        db = SessionLocal()
+async def get_db() -> AsyncIterator[AsyncSession]:
+    async with sessionmanager.session() as db:
         yield db
-    finally:
-        db.close()
 
 
-def get_user_gateway(db: Session = Depends(get_db)) -> UserDbGateway:
+async def get_user_gateway(db: AsyncSession = Depends(get_db)) -> UserDbGateway:
     return UserDbGateway(db)
 
 
-def get_user_by_token(token: str, target_type: str, gateway: UserDbGateway) -> User:
-    try:
-        payload = decode_token(token)
-    except JWTError:
-        raise HTTPException(
-            status_code=403,
-            detail="Could not validate credentials",
-        )
-    if payload.get(TOKEN_TYPE_FIELD) != target_type:
-        raise HTTPException(status_code=401, detail="Invalid token type")
-
-    user = gateway.get_by_id(payload.get("sub"))
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
+async def get_post_gateway(db: AsyncSession = Depends(get_db)) -> PostDbGateway:
+    return PostDbGateway(db)
 
 
-def get_current_auth_user(
+async def get_post_service(
+    gateway: PostDbGateway = Depends(get_post_gateway),
+) -> PostService:
+    return PostService(gateway)
+
+
+async def get_comment_gateway(db: AsyncSession = Depends(get_db)) -> CommentDbGateway:
+    return CommentDbGateway(db)
+
+
+async def get_auth_service(
+    gateway: UserDbGateway = Depends(get_user_gateway),
+) -> AuthenticationService:
+    return AuthenticationService(gateway)
+
+
+async def get_comment_service(
+    comment_gateway: CommentDbGateway = Depends(get_comment_gateway),
+    post_gateway: PostDbGateway = Depends(get_post_gateway),
+) -> CommentService:
+    return CommentService(comment_gateway, post_gateway)
+
+
+async def get_user_service(
+    gateway: UserDbGateway = Depends(get_user_gateway),
+) -> UserService:
+    return UserService(gateway)
+
+
+async def get_current_auth_user(
     token: HTTPAuthorizationCredentials = Depends(bearer),
-    db: Session = Depends(get_user_gateway),
-) -> User:
-    if not token:
-        raise HTTPException(status_code=403, detail="Credentials not provided")
-    return get_user_by_token(token.credentials, ACCESS_TOKEN_TYPE, db)
+    auth_service: AuthenticationService = Depends(get_auth_service),
+) -> UserDTO:
+    credentials = token.credentials if token else None
+    return await auth_service.get_auth_user(credentials, TokenType.ACCESS)
 
 
-def get_current_auth_user_refresh(
-    token: RefreshToken, gateway: Session = Depends(get_user_gateway)
-) -> User:
-    return get_user_by_token(token.refresh_token, REFRESH_TOKEN_TYPE, gateway)
+async def get_current_auth_user_refresh(
+    token: RefreshToken,
+    auth_service: AuthenticationService = Depends(get_auth_service),
+) -> UserDTO:
+    return await auth_service.get_auth_user(token.refresh_token, TokenType.REFRESH)

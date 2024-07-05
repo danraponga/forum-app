@@ -1,24 +1,41 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 
 
 class UserDbGateway:
-    def __init__(self, db: Session) -> None:
+    def __init__(self, db: AsyncSession) -> None:
         self.db = db
 
-    def create(self, user: User) -> None:
+    async def create(self, user: User) -> None:
         self.db.add(user)
-        self.db.commit()
+        await self.db.commit()
+        await self.db.refresh(user)
 
-    def get_by_id(self, user_id: int) -> User:
-        return self.db.query(User).filter(User.id == user_id).first()
+    async def get_by_id(self, user_id: int) -> User | None:
+        stmt = select(User).where(User.id == user_id)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
 
-    def get_by_email(self, email: str) -> User:
-        return self.db.query(User).filter(User.email == email).first()
+    async def get_by_email(self, email: str) -> User | None:
+        stmt = select(User).where(User.email == email)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
 
-    def get_list(self, skip: int, limit: int) -> list[User]:
-        return self.db.query(User).offset(skip).limit(limit).all()
+    async def get_by_username(self, username: str) -> User | None:
+        stmt = select(User).where(User.username == username)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
 
-    def get_total(self) -> int:
-        return self.db.query(User).count()
+    async def get_list(self, skip: int, limit: int) -> tuple[list[User], int]:
+        stmt = select(User).offset(skip).limit(limit)
+        result = await self.db.execute(stmt)
+        users = result.scalars().all()
+        total = await self.get_total()
+        return users, total
+
+    async def get_total(self) -> int:
+        stmt = select(func.count()).select_from(User)
+        result = await self.db.execute(stmt)
+        return result.scalar_one()

@@ -1,22 +1,53 @@
-from typing import Any
+import asyncio
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
 
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import (
+    AsyncConnection,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.orm import DeclarativeBase
 
 from app.core.config import settings
 
 
-@as_declarative()
-class Base:
-    id: Any
-    __name__: str
-
-    # Generate __tablename__ automatically
-    @declared_attr
-    def __tablename__(cls) -> str:
-        return cls.__name__.lower()
+class Base(DeclarativeBase):
+    pass
 
 
-engine = create_engine(settings.DB_URI)
-SessionLocal = sessionmaker(autoflush=False, bind=engine)
+class DatabaseSessionManager:
+    def __init__(self, db_url: str) -> None:
+        self._engine = create_async_engine(url=db_url, future=True, echo=False)
+        self._sessionmaker = async_sessionmaker(
+            bind=self._engine, autocommit=False, expire_on_commit=False
+        )
+
+    async def close(self):
+        await self._engine.dispose()
+        self._sessionmaker = None
+        self._engine = None
+
+    @asynccontextmanager
+    async def connect(self) -> AsyncIterator[AsyncConnection]:
+        async with self._engine.begin() as connection:
+            try:
+                yield connection
+            except Exception:
+                await connection.rollback()
+                raise
+
+    @asynccontextmanager
+    async def session(self) -> AsyncIterator[AsyncSession]:
+        session = self._sessionmaker()
+        try:
+            yield session
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+
+sessionmanager = DatabaseSessionManager(settings.DB_URI)
