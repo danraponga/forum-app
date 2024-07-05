@@ -13,11 +13,15 @@ The post author can view statistics on total and banned comments for a specified
 ## Setup
 Clone the project:
 
-`git clone git@github.com:danraponga/forum-app.git`
+```
+git clone git@github.com:danraponga/forum-app.git
+```
 
 Copy enviroment variables and fill them in `.env`:
 
-`cp .env.sample .env`
+```
+cp .env.sample .env
+```
 
 
 Go to https://console.groq.com/keys and generate API key for GroqAI or you can try user mine if it works.
@@ -29,11 +33,15 @@ Set `AI_PROMPT` in `app.core.config` as you want or leave it as default. The PRO
 ## Run application
 Build and run application using Docker:
 
-`docker compose up --build`
+```
+docker compose up --build
+```
 
 When containers start, make migrations:
 
-`docker exec web alembic upgrade head`
+```
+docker exec web alembic upgrade head
+```
 
 
 Then run to `https://0.0.0.0:8000/docs/` to use API with Swagger documentation.
