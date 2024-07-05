@@ -17,7 +17,7 @@ class SignUpDTO(BaseModel):
     username: str = Field(min_length=4, max_length=16, examples=["username"])
     email: EmailStr
     password: str = Field(min_length=4, examples=["securepassword1"])
-    
+
     @model_validator(mode="before")
     @classmethod
     def validate_password(cls, data: dict) -> dict:

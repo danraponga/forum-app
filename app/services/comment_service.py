@@ -20,8 +20,8 @@ from app.schemas.comment import (
     ReadCommentsStatDTO,
     UpdateCommentDTO,
 )
-from app.services.scheduler import schedule_create_comment_by_ai_task
 from app.services.common.base_service import BaseService
+from app.services.common.scheduler import schedule_ai_comment_response_task
 
 
 class CommentService(BaseService):
@@ -36,7 +36,8 @@ class CommentService(BaseService):
         if not post:
             raise PostNotFound()
         if dto.parent_id:
-            if not await self.comment_gateway.get_by_id(dto.post_id, dto.parent_id):
+            parent = await self.comment_gateway.get_by_id(dto.post_id, dto.parent_id)
+            if not parent:
                 raise CommentNotFound()
 
         comment = Comment(
@@ -49,14 +50,15 @@ class CommentService(BaseService):
             comment.status = Status.BANNED
         await self.comment_gateway.create(comment)
 
-        if post.ai_enabled and post.owner_id != comment.owner_id:
-            ai_dto = CreateAICommentDTO(
-                post_id=post.id,
-                parent_id=comment.id,
-            )
-            run_date = datetime.now() + timedelta(minutes=post.ai_delay_minutes)
-            schedule_create_comment_by_ai_task(ai_dto, run_date)
-            
+        if post.ai_enabled and not comment.is_ai:
+            if not dto.parent_id or parent.is_ai:
+                ai_dto = CreateAICommentDTO(
+                    post_id=post.id,
+                    parent_id=comment.id,
+                )
+                run_date = datetime.now() + timedelta(minutes=post.ai_delay_minutes)
+                await schedule_ai_comment_response_task(ai_dto, run_date)
+
         return CommentDTO.model_validate(comment, from_attributes=True)
 
     async def get_comment(self, dto: ReadCommentRequest) -> CommentDTO:

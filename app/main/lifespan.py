@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from app.services.scheduler import scheduler
+
+from app.services.common.scheduler import scheduler
 
 
 @asynccontextmanager

@@ -17,6 +17,7 @@ class Comment(Base, TimestampedModel):
     parent_id: Mapped[int | None] = mapped_column(ForeignKey("comments.id"), nullable=True)
     content: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[Status] = mapped_column(default=Status.ACTIVE)
+    is_ai: Mapped[bool] = mapped_column(default=False)
 
     children: Mapped[List["Comment"]] = relationship(
         "Comment",
