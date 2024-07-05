@@ -1,7 +1,13 @@
 import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncConnection, AsyncSession
+
+from sqlalchemy.ext.asyncio import (
+    AsyncConnection,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import DeclarativeBase
 
 from app.core.config import settings
@@ -26,12 +32,12 @@ class DatabaseSessionManager:
     @asynccontextmanager
     async def connect(self) -> AsyncIterator[AsyncConnection]:
         async with self._engine.begin() as connection:
-                try:
-                    yield connection
-                except Exception:
-                    await connection.rollback()
-                    raise
-                
+            try:
+                yield connection
+            except Exception:
+                await connection.rollback()
+                raise
+
     @asynccontextmanager
     async def session(self) -> AsyncIterator[AsyncSession]:
         session = self._sessionmaker()
@@ -42,6 +48,6 @@ class DatabaseSessionManager:
             raise
         finally:
             await session.close()
-                        
+
 
 sessionmanager = DatabaseSessionManager(settings.DB_URI)
