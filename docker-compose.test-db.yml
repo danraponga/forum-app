@@ -19,5 +19,5 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: ${TEST_DB_HOST}/24
+        - subnet: ${TEST_DB_SUBNET}
 
