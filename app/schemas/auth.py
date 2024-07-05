@@ -20,9 +20,11 @@ class SignUpDTO(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def validate_password(cls, data: dict) -> dict:
+    def validate(cls, data: dict) -> dict:
         if not any(char.isdigit() for char in data["password"]):
             raise ValueError("Password must contain at least one number")
+        if not any(char.isalpha() for char in data["password"]):
+            raise ValueError("Password must contain at least one letter")
         return data
 
 

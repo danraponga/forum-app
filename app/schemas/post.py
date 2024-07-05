@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.models.common.enums.status import Status
 
@@ -22,8 +22,15 @@ class PostId(BaseModel):
 class CreatePostRequest(BaseModel):
     content: str = Field(examples=["Your content here"])
     ai_enabled: bool = False
-    ai_delay_minutes: int | None = None
-
+    ai_delay_minutes: int = Field(examples=[None])
+    
+    @model_validator(mode="before")
+    @classmethod
+    def validate(data: dict) -> dict:
+        if not data["ai_delay_minutes"] < 0:
+            raise ValueError("Delay can't be less than zero. Minimum allowed value: 0")
+        return data
+        
 
 class CreatePostDTO(CreatePostRequest):
     user_id: int
