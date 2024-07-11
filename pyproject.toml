@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "social-media"
+name = "forum-app"
 version = "0.1.0"
 description = "A simple social network with the ability to create posts and leave comments. Post comments can be moderated using AI"
 authors = ["Dmytro Kovalenko <danrapongha@gmail.com>"]

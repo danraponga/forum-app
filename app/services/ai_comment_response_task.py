@@ -30,7 +30,10 @@ async def create_comment_response_by_ai(dto: CreateAICommentDTO) -> None:
     )
     await comment_gateway.create(comment)
     await db.close()
-
+    print(
+        f'Task "create_comment_response_by_ai" successfully completed.\n'
+        f'Comment created with comment_id: {comment.id}, post_id: {post.id}'
+    )
 
 async def parse_comments_history(
     gateway: CommentDbGateway, parent: Comment, post_id: int

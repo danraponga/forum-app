@@ -19,3 +19,4 @@ async def schedule_ai_comment_response_task(
     scheduler.add_job(
         create_comment_response_by_ai, trigger="date", run_date=run_date, args=[dto]
     )
+    print(f'Task "create_comment_response_by_ai" will be started at {run_date}')
