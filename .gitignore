@@ -4,4 +4,3 @@ __pycache__/
 .idea
 .isort.cfg
 .vscode/
-poetry.lock
